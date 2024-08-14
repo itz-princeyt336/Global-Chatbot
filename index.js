@@ -86,12 +86,19 @@ client.on('messageCreate', async message => {
 
         await message.delete();
 
-        for (const channelId of config.globalChatChannels) {
-            const channel = await client.channels.fetch(channelId);
-            if (channel) {
-                await channel.send({ embeds: [embed] });
+        // Filter out invalid channels
+        config.globalChatChannels = config.globalChatChannels.filter(async channelId => {
+            try {
+                const channel = await client.channels.fetch(channelId);
+                if (channel) {
+                    await channel.send({ embeds: [embed] });
+                    return true;
+                }
+            } catch (error) {
+                console.error(`Failed to fetch or send message to channel ${channelId}:`, error);
+                return false;
             }
-        }
+        });
     }
 });
 
